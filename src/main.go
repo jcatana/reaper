@@ -19,9 +19,8 @@ import (
 //global variables
 var cfg *config.Config
 var log *logrus.Logger
-//var reap watcher.Watch
 
-//init: get the configuration
+//init: get the configuration, set up logging
 func init() {
     cfg = config.NewConfig()
     log = logging.NewLogger(cfg)
@@ -37,8 +36,8 @@ func main () {
     stopper := make(chan struct{})
 
     //launch go routines
-    go watcher.StartWatching(stopper, informer.Informer(), log, cfg, reap)
-    go reaper.Reap(stopper, log, cfg, reap)
+    go watcher.StartWatching(stopper, informer.Informer(), log, cfg, reap) //launch watcher
+    go reaper.Reap(stopper, log, cfg, reap) //launch reaper
 
     signalChannel := make(chan os.Signal, 0)
     signal.Notify(signalChannel, os.Kill, os.Interrupt)
