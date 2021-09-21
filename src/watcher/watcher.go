@@ -9,13 +9,12 @@ import (
     "k8s.io/client-go/kubernetes"
     "k8s.io/client-go/tools/cache"
     "k8s.io/client-go/informers"
-    
 )
 
-type Watch map[string][]WatchResource
+// Watch is a table of: [namespace][resource] values.. where the resource is the v1/app deployment, stateful set, etc
+type Watch map[string]map[string]WatchResource
 
 type WatchResource struct {
-    resourceName string `json:"resourceName"`
     creationTimestamp string `json:"creationTimestamp"`
     ownkind string `json:"ownkind"`
     killTime time.Duration `json:"killTime"`
@@ -23,41 +22,18 @@ type WatchResource struct {
 
 func NewWatcher() Watch {
     reap := make(Watch)
-    //watch := &Watch {}
-    //reap := make(map[string][]WatchResources)
     return reap
 }
-func (w Watch) GetResource(namespace string, idx int) WatchResource {
-    return w[namespace][idx]
+
+func (w WatchResource) GetCreationTimestamp() string {
+    return w.creationTimestamp
 }
-func (w Watch) GetResourceName(namespace string, idx int) string {
-    return w[namespace][idx].resourceName
+func (w WatchResource) GetOwnkind() string {
+    return w.ownkind
 }
-func (w Watch) GetCreationTimestamp(namespace string, idx int) string {
-    return w[namespace][idx].creationTimestamp
+func (w WatchResource) GetKillTime() time.Duration {
+    return w.killTime
 }
-func (w Watch) GetOwnkind(namespace string, idx int) string {
-    return w[namespace][idx].ownkind
-}
-func (w Watch) GetKillTime(namespace string, idx int) time.Duration {
-    return w[namespace][idx].killTime
-}
-/*
-func (r Watch) removeObject(namespace string, log *logrus.Logger, idx int) []WatchResource {
-    rw := r[namespace]
-    if idx == 0 {
-        rw = rw[idx+1:]
-    }
-    if idx == len(rw) {
-        rw = rw[:idx]
-    }
-    if (idx > len(rw) && idx > 0) {
-        rw = append(rw[:idx], rw[idx+1:]...)
-    }
-    log.WithFields(logrus.Fields{"idx": idx}).Trace("Removing id from slice")
-    return rw
-}
-*/
 
 func findParent(mObj metav1.Object, log *logrus.Logger, clientset kubernetes.Interface, ownkind string) (metav1.Object, string) {
     if len(mObj.GetOwnerReferences()) == 0 {
@@ -134,17 +110,14 @@ func StartWatching(stopper <-chan struct{}, s cache.SharedIndexInformer, log *lo
                 pObj, ownkind := findParent(mObj, log, clientset, "Pod")
 
                 //add returned parent to the store
-                reap[pObj.GetNamespace()] = append(
-                    reap[pObj.GetNamespace()],
-                    WatchResource{
-                        resourceName: pObj.GetName(),
-                        creationTimestamp: pObj.GetCreationTimestamp().String(),
-                        ownkind: ownkind,
-                        killTime: killTime,
-                    },
-                )
+                reap[pObj.GetNamespace()][pObj.GetName()] = WatchResource{
+                    creationTimestamp: pObj.GetCreationTimestamp().String(),
+                    ownkind: ownkind,
+                    killTime: killTime,
+                }
                 log.WithFields(logrus.Fields{"namespace": pObj.GetNamespace(), "kind": ownkind, "name": pObj.GetName()}).Info("Adding Object to store")
             } else {
+                reap[mObj.GetName()] = make(map[string]WatchResource)
                 log.WithFields(logrus.Fields{"namespace": mObj.GetName()}).Info("Watching namespace")
             }
             //Start watchers for the objects in the namespace
