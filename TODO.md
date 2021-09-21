@@ -4,6 +4,7 @@ No particular order
 
 <ol>
 <li>documentation</li>
+<li>fix the build scripts and helm releases</li>
 <li>metrics - resources freed per iteration?</li>
 <li>add single namespace only operation</li>
 <li>ignore self in single namespace mode</li>
