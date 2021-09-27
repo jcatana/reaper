@@ -1,5 +1,6 @@
-FROM golang:1.16.6-alpine
+FROM alpine:latest
 WORKDIR /app
-COPY ./ ./
-RUN cd src && go mod download && go build -o reaper
-CMD /app/reaper
+COPY reaper ./
+RUN addgroup -S reaper && adduser -S reaper -G reaper
+USER reaper
+ENTRYPOINT ["./reaper"]
