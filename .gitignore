@@ -16,4 +16,5 @@
 
 *.gobin
 .idea/
+tmp.*/
 
