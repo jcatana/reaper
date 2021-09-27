@@ -85,7 +85,6 @@ func findParent(mObj metav1.Object, log *logrus.Logger, clientset kubernetes.Int
 		mObj, ownkind := findParent(child, log, clientset, ownkind)
 		return mObj, ownkind
 	}
-	return mObj, ownkind
 }
 
 func StartWatching(stopper <-chan struct{}, s cache.SharedIndexInformer, log *logrus.Logger, cfg *config.Config, reap Watch) {
