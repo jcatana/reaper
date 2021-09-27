@@ -21,3 +21,19 @@ Many configuration parameters can be overridden on a per namespace level.
 
 ## Docker images
 
+
+## TODO
+- documentation
+- fix the build scripts and helm releases
+- metrics - resources freed per iteration?
+- add single namespace only operation
+- ignore self in single namespace mode
+- metrics. # of kills
+- Make a global config helm configMap
+- Backup data to PVC (or maybe config-maps?) before deleting
+- SMTP support
+- Heirarchical killtime overrides system. xGlobal -> xNamespace -> ?Entity
+- Helm chart
+- logo
+- license
+
