@@ -2,18 +2,17 @@ package main
 
 //imports
 import (
-    "os"
-    "os/signal"
-    "github.com/jcatana/reaper/config"
-    "github.com/jcatana/reaper/logging"
-    "github.com/jcatana/reaper/watcher"
-    "github.com/jcatana/reaper/reaper"
-    "github.com/sirupsen/logrus"
+	"github.com/jcatana/reaper/config"
+	"github.com/jcatana/reaper/logging"
+	"github.com/jcatana/reaper/reaper"
+	"github.com/jcatana/reaper/watcher"
+	"github.com/sirupsen/logrus"
+	"os"
+	"os/signal"
 
-    "k8s.io/client-go/informers"
-    corev1 "k8s.io/api/core/v1"
-    metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
-
+	corev1 "k8s.io/api/core/v1"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"k8s.io/client-go/informers"
 )
 
 //global variables
@@ -22,26 +21,26 @@ var log *logrus.Logger
 
 //init: get the configuration, set up logging
 func init() {
-    cfg = config.NewConfig()
-    log = logging.NewLogger(cfg)
+	cfg = config.NewConfig()
+	log = logging.NewLogger(cfg)
 }
 
 //main
-func main () {
-    reap := watcher.NewWatcher()
+func main() {
+	reap := watcher.NewWatcher()
 
-    factory := informers.NewFilteredSharedInformerFactory(cfg.GetClientset(), 0, corev1.NamespaceAll, func(options *metav1.ListOptions) {options.LabelSelector = cfg.GetVendor() + "/enabled=True"})
-    informer := factory.Core().V1().Namespaces()
+	factory := informers.NewFilteredSharedInformerFactory(cfg.GetClientset(), 0, corev1.NamespaceAll, func(options *metav1.ListOptions) { options.LabelSelector = cfg.GetVendor() + "/enabled=True" })
+	informer := factory.Core().V1().Namespaces()
 
-    stopper := make(chan struct{})
+	stopper := make(chan struct{})
 
-    //launch go routines
-    go watcher.StartWatching(stopper, informer.Informer(), log, cfg, reap) //launch watcher
-    go reaper.Reap(stopper, log, cfg, reap) //launch reaper
+	//launch go routines
+	go watcher.StartWatching(stopper, informer.Informer(), log, cfg, reap) //launch watcher
+	go reaper.Reap(stopper, log, cfg, reap)                                //launch reaper
 
-    signalChannel := make(chan os.Signal, 0)
-    signal.Notify(signalChannel, os.Kill, os.Interrupt)
+	signalChannel := make(chan os.Signal, 0)
+	signal.Notify(signalChannel, os.Kill, os.Interrupt)
 
-    <-signalChannel
-    close(stopper)
+	<-signalChannel
+	close(stopper)
 }
