@@ -1,0 +1,118 @@
+/*
+package backup
+
+import (
+    "fmt"
+    "strings"
+    "github.com/jcatana/reaper/config"
+    metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+    //"k8s.io/apimachinery/pkg/runtime/serializer/json"
+    "k8s.io/apimachinery/pkg/api/meta"
+    "k8s.io/apimachinery/pkg/runtime/schema"
+    "k8s.io/client-go/discovery"
+    "k8s.io/client-go/discovery/cached/memory"
+    "k8s.io/client-go/rest"
+    "k8s.io/client-go/restmapper"
+)
+*/
+/*
+func BackupToYaml(resource ) {
+    serializer := k8sJson.NewSerializerWithOptions(
+        k8sJson.DefaultMetaFactory, nil, nil,
+        k8sJson.SerializerOptions{
+            Yaml:   true,
+            Pretty: true,
+            Strict: true,
+        },
+    )
+    serializer.Encode(resource, os.Stdout)
+    return nil
+}
+*/
+
+
+func createGvkString(gvk string) (string, string, string) {
+    s := strings.Split(gvk, "/")
+    //fmt.Printf("%v", s)
+    group := s[2]
+    version := s[3]
+    kind := s[6]
+    return group, version, kind
+}
+
+func findGvk(gvkstring string, cfg *rest.Config) (*meta.RESTMapping, error) {
+
+    groupString, versionString, kindString := createGvkString(gvkstring)
+    fmt.Printf("Group: %s Version: %s Kind: %s", groupString, versionString, kindString)
+
+    // DiscoveryClient queries API server about the resources
+    dc, err := discovery.NewDiscoveryClientForConfig(cfg)
+    if err != nil {
+        fmt.Printf("\nerror\n%v\n\n", err)
+        return nil, err
+    }
+    mapper := restmapper.NewDeferredDiscoveryRESTMapper(memory.NewMemCacheClient(dc))
+    //var gvk schema.GroupVersionKind
+    //gvk = schema.ParseGroupKind(gvr).WithVersion(version)
+    version, err := schema.ParseGroupVersion(versionString)
+    if err != nil {
+        fmt.Printf("\nversion\n%v\n\n", version)
+        fmt.Printf("\nerror\n%v\n\n", err)
+        return nil, err
+    }
+    kind := schema.ParseGroupKind(kindString)
+    if err != nil {
+        fmt.Printf("\nkind\n%v\n\n", kind)
+        fmt.Printf("\nerror\n%v\n\n", err)
+        return nil, err
+    }
+    gvk := schema.FromAPIVersionAndKind(version.String(), kind.String())
+    if err != nil {
+        fmt.Printf("\ngvk\n%v\n\n", gvk)
+        fmt.Printf("\nerror\n%v\n\n", err)
+        return nil, err
+    }
+
+    mapr, err := mapper.RESTMapping(gvk.GroupKind(), gvk.Version)
+    if err != nil {
+        fmt.Printf("\nvmapr\n%v\n\n", mapr)
+        fmt.Printf("\nerror\n%v\n\n", err)
+        return nil, err
+    }
+    return mapr, nil
+}
+
+func DoBackup(cfg *config.Config, pObj metav1.Object) {
+    
+    
+    metaMap, err := findGvk(pObj.GetSelfLink(), cfg.GetKconf())
+    if err != nil {
+        fmt.Printf("\nobject meta\n%v\n\n", metaMap)
+        fmt.Printf("\nerror\n%v\n\n", err)
+        return 
+    }
+    fmt.Printf("\nobject meta\n%v\n\n", metaMap)
+    //pObjMeta := obj.(metav1.ObjectMeta)
+
+
+    /*
+    uObj, err := runtime.DefaultUnstructuredConverter.ToUnstructured(pObj)
+
+    fmt.Printf("\nunstructured\n%v\n\n", uObj)
+
+    var rt runtime.Object
+    err = runtime.DefaultUnstructuredConverter.FromUnstructured(uObj, &rt)
+    if err != nil {
+        panic(err)
+    }
+    serializer := json.NewSerializerWithOptions(
+    json.DefaultMetaFactory, nil, nil,
+    json.SerializerOptions{
+        Yaml:   true,
+        Pretty: true,
+        Strict: true,
+        },
+    )
+    serializer.Encode(rt, os.Stdout)
+    */
+}

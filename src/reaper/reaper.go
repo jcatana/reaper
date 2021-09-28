@@ -4,11 +4,12 @@ import (
 	"context"
 	"github.com/jcatana/reaper/config"
 	"github.com/jcatana/reaper/watcher"
+	"strconv"
+	"time"
+	//"github.com/jcatana/reaper/backup"
 	"github.com/sirupsen/logrus"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/client-go/kubernetes"
-	"strconv"
-	"time"
 )
 
 //constants
