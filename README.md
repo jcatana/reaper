@@ -28,6 +28,27 @@ Many configuration parameters can be overridden on a per namespace level.
 
 ?
 
+## Devlopment environment
+
+I use kind to stand up a dev instance of k8s and do my testing.
+```
+curl -Lo ./kind https://kind.sigs.k8s.io/dl/v0.11.1/kind-linux-amd64
+chmod +x ./kind
+mv ./kind /usr/local/bin/kind
+```
+after that you create a kind cluster
+```
+kind create cluster
+```
+Create a bunch of namespaces and label them to be monitored
+```
+for i in `seq 1 10`; do k create namespace test${i}; k label namespace test${i} reaper.io/enabled=True; k annotate namespace reaper.io/killTime=${i}m; done
+```
+Create a bunch of sleep deployments to be killed
+```
+for i in `seq 1 10`; do k -n create test-sleep-deployment.yaml; done
+```
+
 
 ## TODO
 - Documentation
