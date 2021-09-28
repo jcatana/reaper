@@ -1,0 +1,22 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: reaper-deployment
+  labels:
+    app: reaper
+spec:
+  selector:
+    matchLabels:
+      app: reaper
+  template:
+    metadata:
+      labels:
+        app: reaper
+    spec:
+      containers:
+      - name: reaper
+        image: reaper:1
+        imagePullPolicy: Never
+        ports:
+        - containerPort: 8443
+          
