@@ -29,6 +29,13 @@ Many configuration parameters can be overridden on a per namespace level.
 ?
 
 ## Devlopment environment
+A couple things to start you out with cli kubernetes:
+```
+echo "alias k=kubectl" >> ~/.bashrc
+echo "complete -F __start_kubectl k" >> ~/.bashrc
+kubectl completion bash >> ~/.bashrc
+```
+
 
 I use kind to stand up a dev instance of k8s and do my testing.
 ```
