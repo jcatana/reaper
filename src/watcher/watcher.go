@@ -2,7 +2,6 @@ package watcher
 
 import (
 	"context"
-	"github.com/jcatana/reaper/backup"
 	"github.com/jcatana/reaper/config"
 	"github.com/sirupsen/logrus"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -19,7 +18,6 @@ type WatchResource struct {
 	creationTimestamp string        `json:"creationTimestamp"`
 	ownkind           string        `json:"ownkind"`
 	killTime          time.Duration `json:"killTime"`
-	//gvkPath             string          `json:"gvkPath"`
 }
 
 func NewWatcher() Watch {
@@ -110,7 +108,6 @@ func StartWatching(stopper <-chan struct{}, s cache.SharedIndexInformer, log *lo
 
 				//search for parent
 				pObj, ownkind := findParent(mObj, log, clientset, "Pod")
-				backup.DoBackup(cfg, pObj)
 
 				//add returned parent to the store
 				reap[pObj.GetNamespace()][pObj.GetName()] = WatchResource{

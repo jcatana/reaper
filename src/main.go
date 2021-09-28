@@ -1,6 +1,5 @@
 package main
 
-//imports
 import (
 	"github.com/jcatana/reaper/config"
 	"github.com/jcatana/reaper/logging"
@@ -19,24 +18,25 @@ import (
 var cfg *config.Config
 var log *logrus.Logger
 
-//init: get the configuration, set up logging
 func init() {
 	cfg = config.NewConfig()
 	log = logging.NewLogger(cfg)
 }
 
-//main
 func main() {
 	reap := watcher.NewWatcher()
 
-	factory := informers.NewFilteredSharedInformerFactory(cfg.GetClientset(), 0, corev1.NamespaceAll, func(options *metav1.ListOptions) { options.LabelSelector = cfg.GetVendor() + "/enabled=True" })
+	factory := informers.NewFilteredSharedInformerFactory(cfg.GetClientset(), 0, corev1.NamespaceAll, func(options *metav1.ListOptions) {
+		options.LabelSelector = cfg.GetVendor() + "/enabled=True"
+	})
 	informer := factory.Core().V1().Namespaces()
 
 	stopper := make(chan struct{})
 
-	//launch go routines
-	go watcher.StartWatching(stopper, informer.Informer(), log, cfg, reap) //launch watcher
-	go reaper.Reap(stopper, log, cfg, reap)                                //launch reaper
+	// launch watcher go routine
+	go watcher.StartWatching(stopper, informer.Informer(), log, cfg, reap)
+	// launch reaper go routine
+	go reaper.Reap(stopper, log, cfg, reap)
 
 	signalChannel := make(chan os.Signal, 0)
 	signal.Notify(signalChannel, os.Kill, os.Interrupt)

@@ -39,9 +39,6 @@ func getEnv(key, fallback string) string {
 func (c *Config) GetClientset() kubernetes.Interface {
 	return c.clientset
 }
-func (c *Config) GetKconf() *rest.Config {
-	return c.kconf
-}
 func (c *Config) GetLogLevel() string {
 	return c.global.logLevel
 }
