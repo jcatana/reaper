@@ -35,8 +35,15 @@ echo "alias k=kubectl" >> ~/.bashrc
 echo "complete -F __start_kubectl k" >> ~/.bashrc
 kubectl completion bash >> ~/.bashrc
 ```
-
-
+Install helm to deploy the chart
+```
+curl https://get.helm.sh/helm-v3.7.0-linux-amd64.tar.gz -O
+tar -zxvf helm-v3.7.0-linux-amd64.tar.gz
+rm -rf helm-v3.7.0-linux-amd64.tar.gz
+mv linux-amd64/helm /usr/local/bin/helm
+chmod +x /usr/local/bin/helm
+rm -rf linux-amd64
+```
 I use kind to stand up a dev instance of k8s and do my testing.
 ```
 curl -Lo ./kind https://kind.sigs.k8s.io/dl/v0.11.1/kind-linux-amd64
@@ -58,6 +65,7 @@ for i in `seq 1 10`; do k -n create test-sleep-deployment.yaml; done
 
 
 ## TODO
+- Move todo list to kanban board
 - Documentation
 - Fix the build scripts and helm releases
 - Metrics - resources freed per iteration?
