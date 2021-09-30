@@ -1,12 +1,13 @@
 # Reaper
+A simple daemon that will automatically delete items in a namespace that have been running longer than the specified time.
 
-This project is for larger shared dev clusters where users may not use autoscalers or clean up after themselves.
+This project is for dev clusters where users may not use autoscaler-scale-to-zero or clean up after themselves.
 
-Reaper will monitor the targeted namespaces in your cluster and delete the resources that have been running for over a specified amount of time. It will only remove resource consuming objects and does not remove things like configMaps, secrets, or services (currently).
-
+It will only remove resource consuming objects and does not remove things like configMaps, secrets, or services (currently). Currently only supports native resource types and hasn't been tested on CRDs.
 
 ## Installation
 
+#### Todo
 This won't actually work right now without releasing the Docker image
 
 ```
@@ -19,6 +20,7 @@ helm -n reaper install .
 
 ## Configuration
 
+#### Todo
 Reaper works through setting labels on namespace. When a namespace is labelled with `reaper.io/enabled=True`, the reaper daemon will begin montoring the objects in that namespace to check if their creation timestamp, is passed the allocated time scale.
 
 Many configuration parameters can be overridden on a per namespace level.
@@ -26,6 +28,7 @@ Many configuration parameters can be overridden on a per namespace level.
 
 ## Docker images
 
+#### Todo
 ?
 
 ## Devlopment environment
