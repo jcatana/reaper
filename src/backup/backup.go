@@ -1,32 +1,51 @@
 package backup
 
 import (
-	"fmt"
-	"github.com/jcatana/reaper/config"
-	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
-	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
-	"k8s.io/apimachinery/pkg/conversion"
-	"k8s.io/apimachinery/pkg/runtime"
+    "context"
+    "fmt"
+    //"os"
+    "github.com/jcatana/reaper/config"
+    //metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+    //"k8s.io/apimachinery/pkg/runtime/serializer/json"
+    "encoding/json"
+    "k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
+    "k8s.io/client-go/kubernetes"
+    //"k8s.io/client-go/rest"
 )
 
-func DoBackup(cfg *config.Config, pObj metav1.Object) {
-	var obj runtime.Object
-	var scope conversion.Scope // While not actually used within the function, need to pass in
-	err := runtime.Convert_runtime_RawExtension_To_runtime_Object(&pObj, &obj, scope)
-	if err != nil {
-		fmt.Printf("\nerror\n%v\n\n", err)
-		//return nil, err
-	}
+//func DoBackup(cfg *config.Config, mLst metav1.List) {
+func DoBackup(cfg *config.Config, gvk string) error {
+    kconfig := cfg.GetKconf()
+    clientset, err := kubernetes.NewForConfig(kconfig)
+    if err != nil {
+        fmt.Printf("\nerror\n%v\n\n", err)
+    }
+    data, err := clientset.RESTClient().Get().AbsPath(gvk).DoRaw(context.TODO())
+    if err != nil {
+        fmt.Printf("\nerror\n%v\n\n", err)
+    }
+    oJson := unstructured.Unstructured{}
+    err = json.Unmarshal(data, &oJson)
+    if err != nil {
+        fmt.Printf("\nerror\n%v\n\n", err)
+    }
+    fmt.Printf("\njson\n%v\n\n", oJson)
+    /*oLst, err := clientset.AppsV1().Deployments(pObj.GetNamespace()).List(context.TODO(), metav1.ListOptions{})
+    if err != nil {
+        fmt.Printf("\nerror\n%v\n\n", err)
+    }
 
-	innerObj, err := runtime.DefaultUnstructuredConverter.ToUnstructured(obj)
-	if err != nil {
-		fmt.Printf("\nerror\n%v\n\n", err)
-		//return nil, err
-	}
-	u := unstructured.Unstructured{Object: innerObj}
-	labels := u.GetLabels()
-	kind := u.GetKind()
-	fmt.Printf("lables: %v\n\n", labels)
-	fmt.Printf("kind: %v\n\n", kind)
-	return
+    fmt.Printf("\n\ncfg\n%v\n", cfg)
+    rObj := oLst.DeepCopyObject()
+    fmt.Printf("\n\nrobj\n%v\n", rObj)
+    s := json.NewSerializerWithOptions(json.DefaultMetaFactory, nil, nil, 
+        json.SerializerOptions{
+            Yaml: true,
+            Pretty: true,
+            Strict: true,
+        },
+    )
+    err = s.Encode(rObj, os.Stdout)
+    */
+    return nil
 }

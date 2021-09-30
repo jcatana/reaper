@@ -15,9 +15,10 @@ import (
 type Watch map[string]map[string]WatchResource
 
 type WatchResource struct {
-	creationTimestamp string        `json:"creationTimestamp"`
-	ownkind           string        `json:"ownkind"`
-	killTime          time.Duration `json:"killTime"`
+	creationTimestamp string
+	ownkind           string
+	killTime          time.Duration
+    gvkPath           string
 }
 
 func NewWatcher() Watch {
@@ -27,6 +28,9 @@ func NewWatcher() Watch {
 
 func (w WatchResource) GetCreationTimestamp() string {
 	return w.creationTimestamp
+}
+func (w WatchResource) GetGvkPath() string {
+	return w.gvkPath
 }
 func (w WatchResource) GetOwnkind() string {
 	return w.ownkind
@@ -98,7 +102,7 @@ func StartWatching(stopper <-chan struct{}, s cache.SharedIndexInformer, log *lo
 				//retrieve namespace annotations to look for overrides
 				ns, err := clientset.CoreV1().Namespaces().Get(context.TODO(), mObj.GetNamespace(), metav1.GetOptions{})
 				if err != nil {
-					panic("Oh shit")
+					panic("Oh shit") // Need to remove this with an actual error
 				}
 				//set global kill time then see if there is an override on the namespace annotation
 				killTime, _ := time.ParseDuration(cfg.GetKillTime())
@@ -114,6 +118,7 @@ func StartWatching(stopper <-chan struct{}, s cache.SharedIndexInformer, log *lo
 					creationTimestamp: pObj.GetCreationTimestamp().String(),
 					ownkind:           ownkind,
 					killTime:          killTime,
+                    gvkPath:           pObj.GetSelfLink(),
 				}
 				log.WithFields(logrus.Fields{"namespace": pObj.GetNamespace(), "kind": ownkind, "name": pObj.GetName()}).Info("Adding Object to store")
 			} else {
