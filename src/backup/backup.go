@@ -5,7 +5,8 @@ import (
 	"fmt"
 	//"os"
 	"github.com/jcatana/reaper/config"
-	"yaml"
+	//yaml "gopkg.in/yaml.v2"
+	"github.com/ghodss/yaml"
 	//metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	//"k8s.io/apimachinery/pkg/runtime/serializer/json"
 	"encoding/json"
@@ -25,16 +26,16 @@ func DoBackup(cfg *config.Config, gvk string) error {
 	if err != nil {
 		fmt.Printf("\nerror\n%v\n\n", err)
 	}
+	out := unstructured.Unstructured{}
 	switch format := cfg.GetBackupFormat(); format {
 	case "json":
-		out := unstructured.Unstructured{}
-		err = json.Unmarshal(data, &oJson)
+		err = json.Unmarshal(data, &out)
 		if err != nil {
 			fmt.Printf("\nerror\n%v\n\n", err)
 		}
 	case "yaml":
 		out := unstructured.Unstructured{}
-		err = yaml.Unmarshal(data, &oJson)
+		err = yaml.Unmarshal(data, &out)
 		if err != nil {
 			fmt.Printf("\nerror\n%v\n\n", err)
 		}
