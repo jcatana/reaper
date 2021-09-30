@@ -18,7 +18,7 @@ type WatchResource struct {
 	creationTimestamp string
 	ownkind           string
 	killTime          time.Duration
-    gvkPath           string
+	gvkPath           string
 }
 
 func NewWatcher() Watch {
@@ -118,7 +118,7 @@ func StartWatching(stopper <-chan struct{}, s cache.SharedIndexInformer, log *lo
 					creationTimestamp: pObj.GetCreationTimestamp().String(),
 					ownkind:           ownkind,
 					killTime:          killTime,
-                    gvkPath:           pObj.GetSelfLink(),
+					gvkPath:           pObj.GetSelfLink(),
 				}
 				log.WithFields(logrus.Fields{"namespace": pObj.GetNamespace(), "kind": ownkind, "name": pObj.GetName()}).Info("Adding Object to store")
 			} else {

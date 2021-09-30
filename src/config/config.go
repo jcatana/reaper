@@ -1,15 +1,15 @@
 package config
 
 import (
+	"flag"
+	"fmt"
 	"k8s.io/client-go/kubernetes"
 	"k8s.io/client-go/rest"
 	"k8s.io/client-go/tools/clientcmd"
 	"k8s.io/client-go/util/homedir"
-	"flag"
-    "fmt"
 	"os"
 	"path/filepath"
-    "strconv"
+	"strconv"
 )
 
 type Config struct {
@@ -19,11 +19,12 @@ type Config struct {
 }
 
 type Global struct {
-	killTime    string
-	vendor      string
-	loopSeconds string
-	logLevel    string
-	backup      bool
+	killTime     string
+	vendor       string
+	loopSeconds  string
+	logLevel     string
+	backup       bool
+	backupFormat string
 }
 
 func NewConfig() *Config {
@@ -56,8 +57,11 @@ func (c *Config) GetKillTime() string {
 func (c *Config) GetLoopSeconds() string {
 	return c.global.loopSeconds
 }
-func (c *Config) Backup() bool {
-    return c.global.backup
+func (c *Config) GetBackup() bool {
+	return c.global.backup
+}
+func (c *Config) GetBackupFormat() string {
+	return c.global.backupFormat
 }
 
 func (c *Config) Populate() {
@@ -71,12 +75,12 @@ func (c *Config) Populate() {
 	c.global.vendor = getEnv("vendor", "reaper.io")
 	c.global.loopSeconds = getEnv("loopSeconds", "10")
 	c.global.logLevel = getEnv("logLevel", "trace")
-    backup, err := strconv.ParseBool(getEnv("backup", "true"))
-    if err != nil {
-        fmt.Printf("Error: Cannot parse backup flag: %v", err)
-        panic(err)
-    }
-    c.global.backup = backup
+	backup, err := strconv.ParseBool(getEnv("backup", "true"))
+	if err != nil {
+		fmt.Printf("Error: Cannot parse backup flag: %v", err)
+		panic(err)
+	}
+	c.global.backup = backup
 }
 
 func k8sConfig() (*rest.Config, kubernetes.Interface, error) {

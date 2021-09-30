@@ -63,20 +63,5 @@ Create a bunch of sleep deployments to be killed
 for i in `seq 1 10`; do k -n create test-sleep-deployment.yaml; done
 ```
 
-
 ## TODO
-- Move todo list to kanban board
-- Documentation
-- Fix the build scripts and helm releases
-- Metrics - resources freed per iteration?
-- Add single namespace only operation
-- Ignore self in single namespace mode
-- Metrics. # of kills
-- Make a global config helm configMap
-- Backup data to PVC (or maybe config-maps?) before deleting
-- SMTP support
-- Hierarchical killtime overrides system. xGlobal -> xNamespace -> ?Entity
-- Helm chart
-- Logo
-- License
-
+Todo list has been moved [here](https://github.com/jcatana/reaper/projects/1).
