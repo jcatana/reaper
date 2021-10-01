@@ -81,6 +81,7 @@ func (c *Config) Populate() {
 		panic(err)
 	}
 	c.global.backup = backup
+	c.global.backupFormat = getEnv("backupFormat", "yaml")
 }
 
 func k8sConfig() (*rest.Config, kubernetes.Interface, error) {

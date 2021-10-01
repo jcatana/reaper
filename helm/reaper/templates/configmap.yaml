@@ -1,0 +1,13 @@
+{{- if .Values.config -}}
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: reaper
+data:
+  KILL_TIME: {{ .Values.config.killTime | default "48h" | quote }}
+  VENDOR: {{ .Values.config.vendor | default "reaper.io" | quote }}
+  LOOP_SECONDS: {{ .Values.config.loopSeconds | default "10" | quote }}
+  LOG_LEVEL: {{ .Values.config.logLevel | default "info" | quote }}
+  BACKUP_ENABLED: {{ .Values.config.backupEnabled | default "true" | quote }}
+  BACKUP_FORMAT: {{ .Values.config.backupFormat | default "yaml" | quote }}
+{{- end }}
