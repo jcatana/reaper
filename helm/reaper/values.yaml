@@ -49,3 +49,29 @@ nodeSelector: {}
 tolerations: []
 
 affinity: {}
+
+config:
+  # killTime defines the global default for the length of time objects will be 
+  # allowed to run in the specific namespace. This uses a standard golang time 
+  # duration. See https://pkg.go.dev/time#ParseDuration
+  # 
+  # default: 
+  # killTime: "48h"
+  #
+  killTime: "48h"
+  # loopSeconds is the amount of time to sleep between each loop. If you set your
+  # loop time higher than your killTime, loop time wins.
+  #
+  # default:
+  # loopSeconds: "10"
+  #
+  loopSeconds: "10"
+  # logLevel verbosity of logs. Possible values [info, debug, trace, error]
+  logLevel: "debug"
+  # backupEnabled
+  backupEnabled: true
+  # format of backup data output. Can only be 'yaml' or 'json'
+  #
+  # default:
+  # backupFormat: "yaml"
+  backupFormat: "yaml"
