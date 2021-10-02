@@ -40,7 +40,7 @@ func DoBackup(cfg *config.Config, gvk string) error {
 	k8sjson.DefaultMetaFactory, nil, nil,
 	k8sjson.SerializerOptions{
 		Yaml:   yamlBool,
-		Pretty: true,
+		Pretty: false,
 		Strict: true,
 		},
 	)
