@@ -1,0 +1,24 @@
+FROM alpine:latest
+
+RUN apk update
+RUN apk upgrade
+RUN apk add curl go
+
+RUN addgroup -S reaper && adduser -S reaper -G reaper
+
+WORKDIR /app
+ADD ./ ./
+
+RUN mkdir /home/reaper/bin /home/reaper/tmp
+RUN chown -R reaper:reaper /home/reaper/ /app/
+
+ENV BINDIR=/home/reaper/bin \
+    TMPDIR=/home/reaper/tmp \
+      PATH=$PATH:/home/reaper/bin
+
+USER reaper
+
+#ENTRYPOINT ["./reaper"]
+CMD [".containerized_buildAndScan.sh"]
+
+

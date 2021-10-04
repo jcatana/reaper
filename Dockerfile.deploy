@@ -1,6 +1,7 @@
 FROM alpine:latest
 WORKDIR /app
-COPY reaper ./
+COPY tmp.dockerWorkArea/reaper ./
 RUN addgroup -S reaper && adduser -S reaper -G reaper
 USER reaper
-ENTRYPOINT ["./reaper"]
+#ENTRYPOINT ["./reaper"]
+CMD ["./reaper"]
