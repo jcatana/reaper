@@ -58,12 +58,14 @@ func Reap(stopper <-chan struct{}, log *logrus.Logger, cfg *config.Config, reap 
 				log.WithFields(logrus.Fields{"creationTimestamp": params.GetCreationTimestamp(), "killTime": params.GetKillTime(), "currentTime": currentTime}).Trace("Times")
 
 				if currentTime.After(killTime) {
-					if len(cfg.GetBackup()) > 0 {
-						err := backup.DoBackup(cfg, params.GetGvkPath())
+					if len(cfg.GetEnabledTargets()) > 0 {
+						err := backup.DoBackup(cfg, log, params.GetGvkPath())
 						if err != nil {
 							log.WithFields(logrus.Fields{"namespace": namespace, "kind": params.GetOwnkind(), "resource": resource}).Info("Cannot backup")
 							break
 						}
+					} else {
+						log.WithFields(logrus.Fields{"namespace": namespace, "kind": params.GetOwnkind(), "resource": resource}).Info("No backup methods defined")
 					}
 
 					err := reapObject(log, cfg.GetClientset(), namespace, params.GetOwnkind(), resource)
