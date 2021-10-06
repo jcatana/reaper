@@ -23,7 +23,6 @@ type WatchNamespace struct {
 type WatchResource struct {
 	creationTimestamp string
 	ownkind           string
-	//killTime          time.Duration
 	gvkPath string
 }
 
@@ -112,18 +111,6 @@ func StartWatching(stopper <-chan struct{}, s cache.SharedIndexInformer, log *lo
 			mObj := obj.(metav1.Object)
 			//This means the object is a namespace, or "not a namespaced object" like an admissions controller or cluster-rbac
 			if len(mObj.GetNamespace()) > 0 {
-				//retrieve namespace annotations to look for overrides
-				/*
-					ns, err := clientset.CoreV1().Namespaces().Get(context.TODO(), mObj.GetNamespace(), metav1.GetOptions{})
-					if err != nil {
-						panic("Oh shit") // Need to remove this with an actual error
-					}
-					//set global kill time then see if there is an override on the namespace annotation
-					killTime, _ := time.ParseDuration(cfg.GetKillTime())
-					if key, ok := ns.Annotations[cfg.GetVendor()+"/killTime"]; ok {
-						killTime, _ = time.ParseDuration(key)
-					}*/
-
 				//search for parent
 				pObj, ownkind := findParent(mObj, log, clientset, "Pod")
 
@@ -131,7 +118,6 @@ func StartWatching(stopper <-chan struct{}, s cache.SharedIndexInformer, log *lo
 				reap[pObj.GetNamespace()].Resources[pObj.GetName()] = WatchResource{
 					creationTimestamp: pObj.GetCreationTimestamp().String(),
 					ownkind:           ownkind,
-					//killTime:          killTime,
 					gvkPath: pObj.GetSelfLink(),
 				}
 				log.WithFields(logrus.Fields{"namespace": pObj.GetNamespace(), "kind": ownkind, "name": pObj.GetName()}).Info("Adding Object to store")
