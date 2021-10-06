@@ -49,13 +49,14 @@ func Reap(stopper <-chan struct{}, log *logrus.Logger, cfg *config.Config, reap 
 	for {
 		log.Trace(reap)
 		for namespace, resources := range reap {
-			for resource, params := range resources {
+			allowedNamespaceDuration := reap[namespace].GetKillTime()
+			for resource, params := range resources.GetResources() {
 				//figure out time
 				currentTime := time.Now().Truncate(time.Second)
 				creationTime, _ := time.Parse(refTime, params.GetCreationTimestamp())
-				killTime := creationTime.Add(params.GetKillTime())
-				log.WithFields(logrus.Fields{"namespace": namespace, "resource": resource, "KTduration": params.GetKillTime()}).Trace("Checking")
-				log.WithFields(logrus.Fields{"creationTimestamp": params.GetCreationTimestamp(), "killTime": params.GetKillTime(), "currentTime": currentTime}).Trace("Times")
+				killTime := creationTime.Add(allowedNamespaceDuration)
+				log.WithFields(logrus.Fields{"namespace": namespace, "resource": resource, "KTduration": allowedNamespaceDuration}).Trace("Checking")
+				log.WithFields(logrus.Fields{"creationTimestamp": params.GetCreationTimestamp(), "killTime": killTime, "currentTime": currentTime}).Trace("Times")
 
 				if currentTime.After(killTime) {
 					if len(cfg.GetEnabledTargets()) > 0 {
@@ -70,7 +71,7 @@ func Reap(stopper <-chan struct{}, log *logrus.Logger, cfg *config.Config, reap 
 
 					err := reapObject(log, cfg.GetClientset(), namespace, params.GetOwnkind(), resource)
 					if err == nil {
-						delete(reap[namespace], resource)
+						delete(resources.Resources, resource)
 						break
 					}
 				}
