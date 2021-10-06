@@ -2,6 +2,7 @@ package watcher
 
 import (
 	"context"
+	"fmt"
 	"github.com/jcatana/reaper/config"
 	"github.com/sirupsen/logrus"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -12,13 +13,18 @@ import (
 )
 
 // Watch is a table of: [namespace][resource] values.. where the resource is the v1/app deployment, stateful set, etc
-type Watch map[string]map[string]WatchResource
+type Watch map[string]*WatchNamespace
+
+type WatchNamespace struct {
+	Resources map[string]WatchResource
+	killTime  time.Duration
+}
 
 type WatchResource struct {
 	creationTimestamp string
 	ownkind           string
-	killTime          time.Duration
-	gvkPath           string
+	//killTime          time.Duration
+	gvkPath string
 }
 
 func NewWatcher() Watch {
@@ -26,6 +32,13 @@ func NewWatcher() Watch {
 	return reap
 }
 
+func (w WatchNamespace) GetResources() map[string]WatchResource {
+	return w.Resources
+}
+func (w *WatchNamespace) UpdateKillTime(killTime time.Duration) {
+	w.killTime = killTime
+	return
+}
 func (w WatchResource) GetCreationTimestamp() string {
 	return w.creationTimestamp
 }
@@ -35,7 +48,7 @@ func (w WatchResource) GetGvkPath() string {
 func (w WatchResource) GetOwnkind() string {
 	return w.ownkind
 }
-func (w WatchResource) GetKillTime() time.Duration {
+func (w WatchNamespace) GetKillTime() time.Duration {
 	return w.killTime
 }
 
@@ -100,8 +113,33 @@ func StartWatching(stopper <-chan struct{}, s cache.SharedIndexInformer, log *lo
 			//This means the object is a namespace, or "not a namespaced object" like an admissions controller or cluster-rbac
 			if len(mObj.GetNamespace()) > 0 {
 				//retrieve namespace annotations to look for overrides
-				ns, err := clientset.CoreV1().Namespaces().Get(context.TODO(), mObj.GetNamespace(), metav1.GetOptions{})
+				/*
+					ns, err := clientset.CoreV1().Namespaces().Get(context.TODO(), mObj.GetNamespace(), metav1.GetOptions{})
+					if err != nil {
+						panic("Oh shit") // Need to remove this with an actual error
+					}
+					//set global kill time then see if there is an override on the namespace annotation
+					killTime, _ := time.ParseDuration(cfg.GetKillTime())
+					if key, ok := ns.Annotations[cfg.GetVendor()+"/killTime"]; ok {
+						killTime, _ = time.ParseDuration(key)
+					}*/
+
+				//search for parent
+				pObj, ownkind := findParent(mObj, log, clientset, "Pod")
+
+				//add returned parent to the store
+				reap[pObj.GetNamespace()].Resources[pObj.GetName()] = WatchResource{
+					creationTimestamp: pObj.GetCreationTimestamp().String(),
+					ownkind:           ownkind,
+					//killTime:          killTime,
+					gvkPath: pObj.GetSelfLink(),
+				}
+				log.WithFields(logrus.Fields{"namespace": pObj.GetNamespace(), "kind": ownkind, "name": pObj.GetName()}).Info("Adding Object to store")
+			} else {
+				//retrieve namespace annotations to look for overrides
+				ns, err := clientset.CoreV1().Namespaces().Get(context.TODO(), mObj.GetName(), metav1.GetOptions{})
 				if err != nil {
+					log.WithFields(logrus.Fields{"error": err}).Error("error retrieving namespace")
 					panic("Oh shit") // Need to remove this with an actual error
 				}
 				//set global kill time then see if there is an override on the namespace annotation
@@ -109,20 +147,10 @@ func StartWatching(stopper <-chan struct{}, s cache.SharedIndexInformer, log *lo
 				if key, ok := ns.Annotations[cfg.GetVendor()+"/killTime"]; ok {
 					killTime, _ = time.ParseDuration(key)
 				}
-
-				//search for parent
-				pObj, ownkind := findParent(mObj, log, clientset, "Pod")
-
-				//add returned parent to the store
-				reap[pObj.GetNamespace()][pObj.GetName()] = WatchResource{
-					creationTimestamp: pObj.GetCreationTimestamp().String(),
-					ownkind:           ownkind,
-					killTime:          killTime,
-					gvkPath:           pObj.GetSelfLink(),
+				reap[mObj.GetName()] = &WatchNamespace{
+					Resources: make(map[string]WatchResource),
+					killTime:  killTime,
 				}
-				log.WithFields(logrus.Fields{"namespace": pObj.GetNamespace(), "kind": ownkind, "name": pObj.GetName()}).Info("Adding Object to store")
-			} else {
-				reap[mObj.GetName()] = make(map[string]WatchResource)
 				log.WithFields(logrus.Fields{"namespace": mObj.GetName()}).Info("Watching namespace")
 			}
 			//Start watchers for the objects in the namespace
@@ -135,11 +163,23 @@ func StartWatching(stopper <-chan struct{}, s cache.SharedIndexInformer, log *lo
 		UpdateFunc: func(oldObj, obj interface{}) {
 			mObj := obj.(metav1.Object)
 			//This means the object is a namespace, or "not a namespaced object" like an admissions controller or cluster-rbac
-			/*
-			   if len(mObj.GetNamespace()) > 0 {
-			   } else {
-			   }
-			*/
+			fmt.Printf("debug ns: %v\n", mObj.GetNamespace())
+			if len(mObj.GetNamespace()) < 1 {
+				ns, err := clientset.CoreV1().Namespaces().Get(context.TODO(), mObj.GetName(), metav1.GetOptions{})
+				if err != nil {
+					panic("Oh shit") // Need to remove this with an actual error
+				}
+				killTime, _ := time.ParseDuration(cfg.GetKillTime())
+				if key, ok := ns.Annotations[cfg.GetVendor()+"/killTime"]; ok {
+					killTime, _ = time.ParseDuration(key)
+				}
+				fmt.Printf("debug obj: %v\n", reap[mObj.GetName()].GetKillTime())
+				fmt.Printf("debug kt: %v\n", killTime)
+				if reap[mObj.GetName()].GetKillTime() != killTime {
+					reap[mObj.GetName()].UpdateKillTime(killTime)
+					log.WithFields(logrus.Fields{"namespace": mObj.GetName(), "killTime": killTime}).Info("killTime updated on namespace")
+				}
+			}
 			//fmt.Printf("Updated object in store. Namespace: %s Name: %s Timestamp: %s", mObj.GetName(), mObj.GetCreationTimestamp())
 			log.WithFields(logrus.Fields{"namespace": mObj.GetName(), "name": mObj.GetCreationTimestamp()}).Info("Updated object in store")
 		},
