@@ -14,7 +14,7 @@ This won't actually work right now without releasing the Docker image
 git clone https://github.com/jcatana/reaper.git
 cd reaper/helm/reaper
 k create namespace reaper
-helm -n reaper install . 
+helm -n reaper install reaper . 
 ```
 
 
