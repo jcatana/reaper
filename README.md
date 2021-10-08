@@ -6,6 +6,7 @@ Reaper is a daemon that automatically deletes items in a Kubernetes namespace th
 
 ## Caveats
 
+
 - Reaper is intended to be used on Kubernetes DEV clusters where the developers aren't using autoscaler-scale-to-zero or don't clean up after themselves.
 - Reaper will only remove resource consuming objects.
 - Reaper does not remove things like configMaps, secrets, or services (currently).
@@ -81,7 +82,7 @@ git clone https://github.com/jcatana/reaper.git
 cd reaper/helm/reaper
 k create namespace reaper
 
-helm install --namespace reaper --generate-name .
+helm --namespace reaper install reaper .
 ```
 
 ## Development Environment
