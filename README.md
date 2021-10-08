@@ -1,70 +1,113 @@
 # Reaper
-A simple daemon that will automatically delete items in a namespace that have been running longer than the specified time.
 
-This project is for dev clusters where users may not use autoscaler-scale-to-zero or clean up after themselves.
+## Description
 
-It will only remove resource consuming objects and does not remove things like configMaps, secrets, or services (currently). Currently only supports native resource types and hasn't been tested on CRDs.
+Reaper is a daemon that automatically deletes items in a Kubernetes namespace that has been running longer than a specified time.
 
-## Installation
-
-#### Todo
-This won't actually work right now without releasing the Docker image
-
-```
-git clone https://github.com/jcatana/reaper.git
-cd reaper/helm/reaper
-k create namespace reaper
-helm -n reaper install reaper . 
-```
+## Caveats
 
 
-## Configuration
+- Reaper is intended to be used on Kubernetes DEV clusters where the developers aren't using autoscaler-scale-to-zero or don't clean up after themselves.
+- Reaper will only remove resource consuming objects.
+- Reaper does not remove things like configMaps, secrets, or services (currently).
+- Reaper currently only supports native resource types and hasn't been tested on CRDs.
 
-#### Todo
-Reaper works through setting labels on namespace. When a namespace is labelled with `reaper.io/enabled=True`, the reaper daemon will begin montoring the objects in that namespace to check if their creation timestamp, is passed the allocated time scale.
+## How Reaper Works
 
-Many configuration parameters can be overridden on a per namespace level.
+- Reaper works through setting labels on namespaces.
+- When a namespace is labelled with `reaper.io/enabled=True`, the reaper daemon will begin montoring the objects in that namespace to check if their creation timestamp, is passed the allocated time scale.
+- Many configuration parameters can be overridden on a per namespace level.
 
 
-## Docker images
+<!--
+## Docker Images
 
-#### Todo
-?
+TODO
+-->
 
-## Devlopment environment
-A couple things to start you out with cli kubernetes:
-```
-echo "alias k=kubectl" >> ~/.bashrc
-echo "complete -F __start_kubectl k" >> ~/.bashrc
-kubectl completion bash >> ~/.bashrc
-```
-Install helm to deploy the chart
-```
+## Dependency Setup
+
+1. If you don't have the latest version of `go` installed, use https://golang.org/.
+2. If you don't have `kubectl` installed, use https://kubernetes.io/docs/tasks/tools/install-kubectl-linux/. (Do not install kubectl via snap, as it has some defects.)
+3. If you don't have `kind` installed, use https://kind.sigs.k8s.io/docs/user/quick-start/.
+4. If you don't have `helm` installed, use:
+
+```shell
 curl https://get.helm.sh/helm-v3.7.0-linux-amd64.tar.gz -O
 tar -zxvf helm-v3.7.0-linux-amd64.tar.gz
 rm -rf helm-v3.7.0-linux-amd64.tar.gz
-mv linux-amd64/helm /usr/local/bin/helm
-chmod +x /usr/local/bin/helm
+
+#mv linux-amd64/helm /usr/local/bin/helm
+mv linux-amd64/helm ~/bin/
+#chmod +x /usr/local/bin/helm
+chmod +x ~/bin/helm
+
 rm -rf linux-amd64
 ```
-I use kind to stand up a dev instance of k8s and do my testing.
-```
-curl -Lo ./kind https://kind.sigs.k8s.io/dl/v0.11.1/kind-linux-amd64
-chmod +x ./kind
-mv ./kind /usr/local/bin/kind
-```
-after that you create a kind cluster
-```
+
+5. Create a `kind` cluster:
+
+```shell
+# add ~/bin to your ~/.bashrc in the PATH environment variable
+which kind || echo 'export PATH=$PATH:~/bin' >> ~/.bashrc && . ~/.bashrc
+
+# create the new cluster in kind
 kind create cluster
 ```
-Create a bunch of namespaces and label them to be monitored
+
+6. Setup the environment for using Kubernetes via cli:
+
+```shell
+echo "alias k=kubectl" >> ~/.bashrc
+# TODO Find a better solution tot eh following line, as it's very invasive in 
+# how it sprays thousands of lines into ~/.bashrc.
+# echo "complete -F __start_kubectl k" >> ~/.bashrc
+. ~/.bashrc
+
+# install kubectl is you don't already have it installed, just not via snap, 
+# or you may encounter issues with 
+# "error: write /dev/stdout: permission denied"
+
+# TODO Find a better solution tot eh following line, as it's very invasive in 
+# how it sprays thousands of lines into ~/.bashrc.
+#kubectl completion bash >> ~/.bashrc
 ```
-for i in `seq 1 10`; do k create namespace test${i}; k label namespace test${i} reaper.io/enabled=True; k annotate namespace reaper.io/killTime=${i}m; done
+
+## Installation
+
+Deploy reaper.
+
+```shell
+git clone https://github.com/jcatana/reaper.git
+cd reaper/helm/reaper
+k create namespace reaper
+
+helm --namespace reaper install reaper .
 ```
-Create a bunch of sleep deployments to be killed
+
+## Development Environment
+
+Create a bunch of namespaces and label them to be monitored:
+
+```shell
+# TODO Figure out why the following doesn't work.
+for i in `seq 1 10`; do
+    k create namespace test${i}
+    k label namespace test${i} reaper.io/enabled=True
+    k annotate namespace reaper.io/killTime=${i}m
+done
 ```
-for i in `seq 1 10`; do k -n create test-sleep-deployment.yaml; done
+
+Create a bunch of sleep deployments to be killed:
+
+```shell
+# TODO Figure out why the following doesn't work.
+for i in `seq 1 10`; do
+    k -n create test-sleep-deployment.yaml
+done
 ```
 
 ## TODO
-Todo list has been moved [here](https://github.com/jcatana/reaper/projects/1).
+
+The TODO list has been moved [HERE](https://github.com/jcatana/reaper/projects/1).
+
