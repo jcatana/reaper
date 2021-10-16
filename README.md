@@ -94,7 +94,7 @@ Create a bunch of namespaces and label them to be monitored:
 for i in `seq 1 10`; do
     k create namespace test${i}
     k label namespace test${i} reaper.io/enabled=True
-    k annotate namespace reaper.io/killTime=${i}m
+    k annotate namespace test${i} reaper.io/killTime=${i}m
 done
 ```
 
