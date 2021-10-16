@@ -103,7 +103,7 @@ Create a bunch of sleep deployments to be killed:
 ```shell
 # TODO Figure out why the following doesn't work.
 for i in `seq 1 10`; do
-    k -n create test-sleep-deployment.yaml
+    k -n test${i} create -f test-sleep-deployment.yaml
 done
 ```
 
