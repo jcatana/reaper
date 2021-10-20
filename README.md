@@ -4,31 +4,26 @@
 
 Reaper is a daemon that automatically deletes items in a Kubernetes namespace that has been running longer than a specified time.
 
-## Caveats
-
-
-- Reaper is intended to be used on Kubernetes DEV clusters where the developers aren't using autoscaler-scale-to-zero or don't clean up after themselves.
-- Reaper will only remove resource consuming objects.
-- Reaper does not remove things like configMaps, secrets, or services (currently).
-- Reaper currently only supports native resource types and hasn't been tested on CRDs.
-- Don't install any dependencies using 'snap', or you'll likely encounter issues that interfere with these instructions.
-
 ## How Reaper Works
 
 - Reaper works through setting labels on namespaces.
 - When a namespace is labelled with `reaper.io/enabled=True`, the reaper daemon will begin monitoring the objects in that namespace to check if their creation timestamp, is passed the allocated time interval.
 - Many configuration parameters can be overridden on a per namespace level.
 
+## Caveats
 
-<!--
-## Docker Images
+- Reaper is intended to be used on Kubernetes DEV clusters where the developers aren't using autoscaler-scale-to-zero or don't clean up after themselves.
+- Reaper will only remove resource consuming objects.
+- Reaper does not remove things like configMaps, secrets, or services (currently).
+- Reaper currently only supports native resource types and hasn't been tested on CRDs.
 
-TODO
--->
+## Development Environment Setup
 
-## Dependency Setup
+### Dependency Setup
 
-1. If you don't have the latest version of `go` installed, use https://golang.org/.
+NOTE: Make sure you're not using a `snap` installed version of the below dependencies, or you'll likely run into permissions or missing file path issues.
+
+1. If you don't have the latest, or second latest, minor version of `go` installed, use https://golang.org/.
 2. If you don't have `kubectl` installed, use https://kubernetes.io/docs/tasks/tools/install-kubectl-linux/.
 3. Setup the environment for using Kubernetes via cli using an alias of `k`:
 
@@ -70,21 +65,30 @@ which kind || echo 'export PATH=$PATH:~/bin' >> ~/.bashrc && . ~/.bashrc
 kind create cluster
 ```
 
-## Installation
-
-Deploy reaper.
+7. Clone Reaper & Create Reaper Namespace in Kubernetes
 
 ```shell
 git clone https://github.com/jcatana/reaper.git
-cd reaper/helm/reaper
-k create namespace reaper
+cd reaper
+baseDir=$(pwd)
 
-helm --namespace reaper install reaper .
+k create namespace reaper
 ```
 
-## Development Environment
+8. Create Reaper Namespace
 
-Create a bunch of namespaces and label them to be monitored:
+```shell
+cd helm/reaper 
+helm --namespace reaper install reaper .
+cd $baseDir
+```
+9. Compile Reaper, Build Reaper Image, & Load in kubernetes
+
+```shell
+./deploy.sh
+```
+
+10. Create Testing Namespaces to Monitor
 
 ```shell
 for i in `seq 1 9`; do
@@ -94,24 +98,20 @@ for i in `seq 1 9`; do
 done
 ```
 
-Create a bunch of sleep deployments to be killed:
+11. Create a Sleep Deployment in Each Test Namespace to be Killed
 
 ```shell
 # cd to the repository root where test-sleep-deployment.yaml is, and then run this:
 for i in `seq 1 9`; do
-    k -n test${i} create -f test-sleep-deployment.yaml
+    k --namespace="test${i}" create --filename="test-sleep-deployment.yaml"
 done
 ```
 
-Run the deploy.sh script to start reaper via 'kind':
 
+12. Watch the Reaper and Test Namespaces
 ```shell
-./deploy.sh
+watch -n 1 'kubectl get pods -A'
 ```
 
-Confirm that reaper is running, and there are no issues:
-```shell
-k get pods -A
-```
-
-TODO: What should happen now???
+13. What to watch for?
+- ?
