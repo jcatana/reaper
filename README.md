@@ -78,6 +78,7 @@ k create namespace reaper
 8. Create Reaper Namespace
 
 ```shell
+kubectl create namespace reaper
 cd helm/reaper 
 helm --namespace reaper install reaper .
 cd $baseDir
@@ -85,7 +86,7 @@ cd $baseDir
 9. Compile Reaper, Build Reaper Image, & Load in kubernetes
 
 ```shell
-./deploy.sh
+./build.sh
 ```
 
 10. Create Testing Namespaces to Monitor
