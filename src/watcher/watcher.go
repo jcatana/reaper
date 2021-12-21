@@ -21,9 +21,10 @@ type WatchNamespace struct {
 }
 
 type WatchResource struct {
-	creationTimestamp string
-	ownkind           string
-	gvkPath string
+	creationTimestamp	string
+	ownkind			string
+	gvkPath			string
+	queued			bool
 }
 
 func NewWatcher() Watch {
@@ -38,17 +39,24 @@ func (w *WatchNamespace) UpdateKillTime(killTime time.Duration) {
 	w.killTime = killTime
 	return
 }
-func (w WatchResource) GetCreationTimestamp() string {
-	return w.creationTimestamp
+func (r WatchResource) GetCreationTimestamp() string {
+	return r.creationTimestamp
 }
-func (w WatchResource) GetGvkPath() string {
-	return w.gvkPath
+func (r WatchResource) GetGvkPath() string {
+	return r.gvkPath
 }
-func (w WatchResource) GetOwnkind() string {
-	return w.ownkind
+func (r WatchResource) GetOwnkind() string {
+	return r.ownkind
 }
 func (w WatchNamespace) GetKillTime() time.Duration {
 	return w.killTime
+}
+func (r WatchResource) GetQueued() bool {
+	return r.queued
+}
+func (r WatchResource) SetQueued() bool {
+	r.queued = true
+	return r.queued
 }
 
 func findParent(mObj metav1.Object, log *logrus.Logger, clientset kubernetes.Interface, ownkind string) (metav1.Object, string) {
@@ -118,6 +126,7 @@ func StartWatching(stopper <-chan struct{}, s cache.SharedIndexInformer, log *lo
 				reap[pObj.GetNamespace()].Resources[pObj.GetName()] = WatchResource{
 					creationTimestamp: pObj.GetCreationTimestamp().String(),
 					ownkind:           ownkind,
+					queued:            false,
 					gvkPath: pObj.GetSelfLink(),
 				}
 				log.WithFields(logrus.Fields{"namespace": pObj.GetNamespace(), "kind": ownkind, "name": pObj.GetName()}).Info("Adding Object to store")

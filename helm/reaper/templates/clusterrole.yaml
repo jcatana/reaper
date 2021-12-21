@@ -24,3 +24,7 @@ rules:
   - 'list'
   - 'watch'
   - 'delete'
+- nonResourceURLs:
+  - /
+  verbs:
+  - 'get'
