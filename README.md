@@ -12,6 +12,7 @@ Reaper is a daemon that automatically deletes items in a Kubernetes namespace th
 
 ## Caveats
 
+- Currently requires featureGate RemoveSelfLink to be set to false as it relies on selflink to derive the object yaml for backups.
 - Reaper is intended to be used on Kubernetes DEV clusters where the developers aren't using autoscaler-scale-to-zero or don't clean up after themselves.
 - Reaper will only remove resource consuming objects.
 - Reaper does not remove things like configMaps, secrets, or services (currently).
@@ -39,6 +40,14 @@ grep '^\. ~/\.bashrc\.kubectl$' ~/.bashrc || echo '. ~/.bashrc.kubectl' >> ~/.ba
 grep "^complete -F __start_kubectl k$" ~/.bashrc || echo "complete -F __start_kubectl k" >> ~/.bashrc && . ~/.bashrc
 ```
 4. If you don't have `kind` installed, use https://kind.sigs.k8s.io/docs/user/quick-start/.
+(kind later than 1.19 requires featureGates RemoveSelfLink set to false. Use this kind yaml)
+`kind create cluster --config kind.yaml`
+```
+kind: Cluster
+apiVersion: kind.x-k8s.io/v1alpha4
+featureGates:
+  "RemoveSelfLink": false
+```
 5. If you don't have `helm` installed, use:
 
 ```shell
