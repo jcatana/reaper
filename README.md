@@ -90,6 +90,7 @@ cd $baseDir
 ```
 
 10. Create Testing Namespaces to Monitor
+You can run `./test.sh` it will do the same thing as these two commands
 
 ```shell
 for i in `seq 1 9`; do
@@ -98,8 +99,6 @@ for i in `seq 1 9`; do
     k annotate namespace test${i} reaper.io/killTime=${i}m
 done
 ```
-
-11. Create a Sleep Deployment in Each Test Namespace to be Killed
 
 ```shell
 # cd to the repository root where test-sleep-deployment.yaml is, and then run this:
