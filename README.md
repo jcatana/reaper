@@ -7,7 +7,7 @@ Reaper is a daemon that automatically deletes items in a Kubernetes namespace th
 ## How Reaper Works
 
 - Reaper works through setting labels on namespaces.
-- When a namespace is labelled with `reaper.io/enabled=True`, the reaper daemon will begin monitoring the objects in that namespace to check if their creation timestamp, is passed the allocated time interval.
+- When a namespace is labeled with `reaper.io/enabled=True`, the reaper daemon will begin monitoring the objects in that namespace to check if their creation timestamp, is passed the allocated time interval.
 - Many configuration parameters can be overridden on a per namespace level.
 
 ## Caveats
