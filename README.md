@@ -40,14 +40,18 @@ grep '^\. ~/\.bashrc\.kubectl$' ~/.bashrc || echo '. ~/.bashrc.kubectl' >> ~/.ba
 grep "^complete -F __start_kubectl k$" ~/.bashrc || echo "complete -F __start_kubectl k" >> ~/.bashrc && . ~/.bashrc
 ```
 4. If you don't have `kind` installed, use https://kind.sigs.k8s.io/docs/user/quick-start/.
-(kind later than 1.19 requires featureGates RemoveSelfLink set to false. Use this kind yaml)
-`kind create cluster --config kind.yaml`
-```
+
+NOTE: If you installed `kind` using the default version of kubernetes ('kindest/node') v1.20.x, or a later version of kind with at least kubernetes 'kindest/node' v1.20.x, you'll need to override the new default value of RemoveSelfLink from `false` to `true`, when you create the kind cluster. If that's the case, run the following:
+   
+```shell
+cat << EOF > kind.yaml
 kind: Cluster
 apiVersion: kind.x-k8s.io/v1alpha4
 featureGates:
   "RemoveSelfLink": false
+EOF
 ```
+
 5. If you don't have `helm` installed, use:
 
 ```shell
@@ -71,7 +75,11 @@ rm -rf linux-amd64
 which kind || echo 'export PATH=$PATH:~/bin' >> ~/.bashrc && . ~/.bashrc
 
 # create the new cluster in kind
-kind create cluster
+if [ -f kind.yaml ]; then
+    kind create cluster --config kind.yaml
+else
+    kind create cluster
+fi
 ```
 
 7. Clone Reaper & Create Reaper Namespace in Kubernetes
@@ -99,6 +107,7 @@ cd $baseDir
 ```
 
 10. Create Testing Namespaces to Monitor
+
 You can run `./test.sh` it will do the same thing as these two commands
 
 ```shell
