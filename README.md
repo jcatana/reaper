@@ -41,7 +41,7 @@ grep "^complete -F __start_kubectl k$" ~/.bashrc || echo "complete -F __start_ku
 ```
 4. If you don't have `kind` installed, use https://kind.sigs.k8s.io/docs/user/quick-start/.
 
-NOTE: If you installed `kind` using the default kubernetes ('kindest/node') v1.20.x image, or you installed a later version of `kind` with the kubernetes ('kindest/node') v1.20.x image, then you'll need to set RemoveSelfLink to false, since the `selfLink` feature was deprecated in kubernetes ('kindest/node') v1.16.x and the `"RemoveSelfLink": false` workaround will be removed in kubernetes ('kindest/node') v1.21.x. To set RemoveSelfLink to false, run the following:
+NOTE: If you installed `kind` v0.10.x using the default kubernetes ('kindest/node') v1.20.x image, or a version of kind `kind` where you explicitly installed the kubernetes ('kindest/mode') v1.20.x image, then you'll need to set RemoveSelfLink to false. This workaround will not work with the kubernetes ('kindest/node') v1.21.x or later images. To set RemoveSelfLink to false, run the following:
    
 ```shell
 cat << EOF > kind.yaml
