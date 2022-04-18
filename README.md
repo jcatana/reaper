@@ -7,7 +7,7 @@ Reaper is a daemon that automatically deletes items in a Kubernetes namespace th
 ## How Reaper Works
 
 - Reaper works through setting labels on namespaces.
-- When a namespace is labelled with `reaper.io/enabled=True`, the reaper daemon will begin monitoring the objects in that namespace to check if their creation timestamp, is passed the allocated time interval.
+- When a namespace is labeled with `reaper.io/enabled=True`, the reaper daemon will begin monitoring the objects in that namespace to check if their creation timestamp, is passed the allocated time interval.
 - Many configuration parameters can be overridden on a per namespace level.
 
 ## Caveats
@@ -40,14 +40,18 @@ grep '^\. ~/\.bashrc\.kubectl$' ~/.bashrc || echo '. ~/.bashrc.kubectl' >> ~/.ba
 grep "^complete -F __start_kubectl k$" ~/.bashrc || echo "complete -F __start_kubectl k" >> ~/.bashrc && . ~/.bashrc
 ```
 4. If you don't have `kind` installed, use https://kind.sigs.k8s.io/docs/user/quick-start/.
-(kind later than 1.19 requires featureGates RemoveSelfLink set to false. Use this kind yaml)
-`kind create cluster --config kind.yaml`
-```
+
+NOTE: If you installed `kind` v0.10.x using the default kubernetes ('kindest/node') v1.20.x image, or a version of `kind` where you explicitly installed the kubernetes ('kindest/mode') v1.20.x image, then you'll need to set RemoveSelfLink to false. This workaround will not work with the kubernetes ('kindest/node') v1.21.x or later images. To set RemoveSelfLink to false, run the following:
+   
+```shell
+cat << EOF > kind.yaml
 kind: Cluster
 apiVersion: kind.x-k8s.io/v1alpha4
 featureGates:
   "RemoveSelfLink": false
+EOF
 ```
+
 5. If you don't have `helm` installed, use:
 
 ```shell
@@ -71,7 +75,11 @@ rm -rf linux-amd64
 which kind || echo 'export PATH=$PATH:~/bin' >> ~/.bashrc && . ~/.bashrc
 
 # create the new cluster in kind
-kind create cluster
+if [ -f kind.yaml ]; then
+    kind create cluster --config kind.yaml
+else
+    kind create cluster
+fi
 ```
 
 7. Clone Reaper & Create Reaper Namespace in Kubernetes
@@ -99,6 +107,7 @@ cd $baseDir
 ```
 
 10. Create Testing Namespaces to Monitor
+
 You can run `./test.sh` it will do the same thing as these two commands
 
 ```shell
